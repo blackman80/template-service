@@ -1,22 +1,26 @@
 ﻿using System.Text.RegularExpressions;
 using CSharpFunctionalExtensions;
+using DirectoryService.Domain.DepartmentPositions;
 using DirectoryService.Domain.Departments.ValueObjects;
 using DirectoryService.Domain.Locations;
+using Path = DirectoryService.Domain.Departments.ValueObjects.Path;
 
 namespace DirectoryService.Domain.Departments;
 
 public class Department
 {
     private List<Department> _children = [];
-    private List<Location> _locations = [];
+    private List<DepartmentPosition> _locations = [];
+    private List<DepartmentPosition> _positions = [];
 
     private Department(
         Name name,
         Identifier identifier,
-        string path,
+        Path path,
         short depth,
         Department? parent,
-        IEnumerable<Location> locations)
+        IEnumerable<DepartmentPosition> locations,
+        IEnumerable<DepartmentPosition> positions)
     {
         Id = Guid.NewGuid();
         Name = name;
@@ -27,6 +31,7 @@ public class Department
         Parent = parent;
         Depth = depth;
         _locations.AddRange(locations);
+        _positions.AddRange(positions);
         IsActive = true;
     }
 
@@ -40,7 +45,7 @@ public class Department
 
     public IReadOnlyList<Department> Children => _children;
 
-    public string Path { get; private set; }
+    public Path Path { get; private set; }
 
     public short Depth { get; private set; }
 
@@ -50,7 +55,9 @@ public class Department
 
     public DateTime UpdatedAt { get; private set; }
 
-    public IReadOnlyList<Location> Locations => _locations;
+    public IReadOnlyList<DepartmentPosition> Locations => _locations;
+
+    public IReadOnlyList<DepartmentPosition> Positions => _positions;
 
     public Result Rename(Name newName, Identifier newIdentifier)
     {
@@ -62,12 +69,12 @@ public class Department
 
     public static Result<Department> Create(
         Name name,
+        Path path,
         Identifier identifier,
         Department? parent,
-        IEnumerable<Location>? locations)
+        IEnumerable<Guid>? locationsIds,
+        IEnumerable<Guid>? positionsIds)
     {
-        string? parentPath = parent?.Path;
-
         short depth;
         if (parent?.Depth == null)
         {
@@ -79,11 +86,19 @@ public class Department
             depth++;
         }
 
-        if (locations == null || !locations.Any())
+        if (locationsIds == null || !locationsIds.Any())
         {
             return Result.Failure<Department>("Invalid locations");
         }
 
-        return new Department(name, identifier, $"{parentPath}.{identifier}", depth, parent, locations);
+        var locations = locationsIds
+            .Select(locationPositionIds => new DepartmentPosition(Guid.NewGuid(), locationPositionIds))
+            .ToList();
+
+        var positions = positionsIds
+            .Select(locationPositionIds => new DepartmentPosition(Guid.NewGuid(), locationPositionIds))
+            .ToList();
+
+        return new Department(name, identifier, path, depth, parent, locations, positions);
     }
 }

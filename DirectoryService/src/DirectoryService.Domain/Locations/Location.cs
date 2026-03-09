@@ -7,7 +7,6 @@ namespace DirectoryService.Domain.Locations;
 
 public class Location
 {
-    private List<Department> _departments = [];
 
     private List<DepartmentPosition> _locationPositions;
 
@@ -35,8 +34,6 @@ public class Location
     public DateTime CreatedAt { get; private set; }
 
     public DateTime UpdatedAt { get; private set; }
-
-    public IReadOnlyList<Department> Departments => _departments;
 
     public IReadOnlyList<DepartmentPosition> LocationPositions => _locationPositions;
 

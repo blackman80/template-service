@@ -3,7 +3,7 @@ using CSharpFunctionalExtensions;
 
 namespace DirectoryService.Domain.Locations.ValueObjects;
 
-public class Timezone
+public record Timezone
 {
     private Timezone(string value)
     {
